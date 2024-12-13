@@ -390,3 +390,65 @@ server.delete('/cart/:id', verifyToken, (req, res) => {
         })
     })
 })
+// 1. POST /feedback - Submit feedback for a shoe
+server.post('/feedback', (req, res) => {
+    
+    const query = 'INSERT INTO FEEDBACK (CUSTOMER_ID,SHOE_ID,COMMENT) VALUES (?, ?, ?, ?)'
+    db.run(query, (err)=> {
+        if (err) {
+            return res.status(500).send('Error submitting feedback');
+        }
+        res.status(201).send('Feedback submitted successfully')
+    })
+})
+
+// 2. GET /feedback - Get all feedback (admin-only or public)
+server.get('/feedback', verifyToken, (req, res) => {
+    const { userDetails } = req
+    const { isADMIN } = userDetails
+
+    // If the user is admin, return all feedback
+    if (isADMIN) {
+        const query = 'SELECT * FROM FEEDBACK'
+        db.all(query, [], (err, rows) => {
+            if (err) {
+                return res.status(500).send('Error retrieving feedback')
+            }
+            res.status(200).json(rows)
+        });
+    } else {
+        // If not an admin, return only feedback visible to the public
+        const query = 'SELECT * FROM FEEDBACK WHERE visibility = 1';  // Assuming 1 is public
+        db.all(query, [], (err, rows) => {
+            if (err) {
+                return res.status(500).send('Error retrieving feedback')
+            }
+            res.status(200).json(rows)
+        })}
+})
+
+// 3. DELETE /feedback/:id - Delete feedback (optional)
+server.delete('/feedback/:id', verifyToken, (req, res) => {
+    const { id } = req.params
+    const { userDetails } = req
+
+    const query = 'SELECT * FROM FEEDBACK WHERE id = ?'
+    db.get(query, [id], (err, row) => {
+        if (err || !row) {
+            return res.status(404).send('Feedback not found')
+        }
+
+        // Only allow the customer who posted the feedback or an admin to delete it
+        if (row.customer_id !== userDetails.id && !userDetails.isADMIN) {
+            return res.status(403).send('Forbidden');
+        }
+
+        const deleteQuery = 'DELETE FROM FEEDBACK WHERE id = ?'
+        db.run(deleteQuery, [id], function (err) {
+            if (err) {
+                return res.status(500).send('Error deleting feedback')
+            }
+            res.status(200).json({ message: 'Feedback deleted successfully' })
+        })
+    })
+})
