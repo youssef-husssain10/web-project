@@ -37,3 +37,59 @@ const createCartTable = `CREATE TABLE IF NOT EXISTS CART (
   FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(ID),
   FOREIGN KEY (SHOE_ID) REFERENCES SHOES(ID)
 )`;
+// Creating the Feedback table
+const createFeedbackTable = `CREATE TABLE IF NOT EXISTS FEEDBACK (
+  CUSTOMER_ID INT NOT NULL,
+  SHOE_ID INT NOT NULL,
+  COMMENT TEXT,
+  FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(ID),
+  FOREIGN KEY (SHOE_ID) REFERENCES SHOES(ID)
+)`;
+
+// Using db.serialize() and db.exec() to create tables in order
+db.serialize(() => {
+  // Creating the CUSTOMER table
+  db.exec(createCustomerTable, (err) => {
+    if (err) {
+      console.error('Error creating CUSTOMER table:', err.message);
+    } else {
+      console.log('CUSTOMER table is ready.');
+    }
+  });
+
+  // Creating the SHOES table
+  db.exec(createShoeTable, (err) => {
+    if (err) {
+      console.error('Error creating SHOES table:', err.message);
+    } else {
+      console.log('SHOES table is ready.');
+    }
+  });
+
+  // Creating the ORDERS table
+  db.exec(createOrderTable, (err) => {
+    if (err) {
+      console.error('Error creating ORDERS table:', err.message);
+    } else {
+      console.log('ORDERS table is ready.');
+    }
+  });
+
+  // Creating the CART table
+  db.exec(createCartTable, (err) => {
+    if (err) {
+      console.error('Error creating CART table:', err.message);
+    } else {
+      console.log('CART table is ready.');
+    }
+  });
+
+  // Creating the FEEDBACK table
+  db.exec(createFeedbackTable, (err) => {
+    if (err) {
+      console.error('Error creating FEEDBACK table:', err.message);
+    } else {
+      console.log('FEEDBACK table is ready.');
+    }
+  });
+});
