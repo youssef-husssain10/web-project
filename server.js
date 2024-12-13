@@ -34,6 +34,8 @@ const verifyToken = (req, res, next) => {
         next();
     })
 }
+
+//######################################################################################################################################################################################
 // 1. POST /customers - Register a new customer
 server.post(`/customers`, (req, res) => {
     const name = req.body.name
@@ -120,6 +122,7 @@ server.delete('/customers/:id', verifyToken, (req, res) => {
         res.status(200).send('Customer deleted successfully')
     })
 })
+//####################################################################
 // 1. GET /shoes - Get a list of all shoes
 server.get('/shoes', (req, res) => {
     db.all(`SELECT * FROM SHOES`, (err, rows) => {
@@ -197,6 +200,7 @@ server.delete('/shoes/:id', verifyToken, (req, res) => {
         }
     })
 })
+//###########################################################
 // 1. POST /orders - Place a new order
 server.post('/orders', (req, res) => {
     const customer_id = req.body.customer_id
@@ -305,6 +309,7 @@ server.delete('/orders/:id', verifyToken, (req, res) => {
             res.status(200).send({ message: 'Order deleted successfully' })
         })
     })
+
 // 1. GET /cart/:id - Get the cart for a specific customer
 server.get('/cart/:id', verifyToken, (req, res) => {
     const { id } = req.params
@@ -390,6 +395,7 @@ server.delete('/cart/:id', verifyToken, (req, res) => {
         })
     })
 })
+
 // 1. POST /feedback - Submit feedback for a shoe
 server.post('/feedback', (req, res) => {
     
@@ -452,8 +458,10 @@ server.delete('/feedback/:id', verifyToken, (req, res) => {
         })
     })
 })
+
 // Start the server
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`)
 })
+
 
