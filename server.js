@@ -120,3 +120,80 @@ server.delete('/customers/:id', verifyToken, (req, res) => {
         res.status(200).send('Customer deleted successfully')
     })
 })
+// 1. GET /shoes - Get a list of all shoes
+server.get('/shoes', (req, res) => {
+    db.all(`SELECT * FROM SHOES`, (err, rows) => {
+        if (err) {
+            return res.status(500).send('Error retrieving shoes')
+        }
+        res.status(200).send(rows)
+    })
+})
+
+// 3. POST /shoes - Add a new shoe (admin-only)
+server.post('/shoes', (req, res) => {
+    // const ISADMIN = req.userDetails.isAdmin;
+    // // Check if the user is an admin
+    // if (ISADMIN !== 1) {
+    //     return res.status(403).send('Only admins can add shoes')
+    // }
+    const name = req.body.name
+    const brand = req.body.brand
+    const size = req.body.size
+    const color = req.body.color
+    const price = req.body.price
+    const quantity = parseInt(req.body.quantity, 10)
+    const query = 'INSERT INTO SHOES (NAME,BRAND,SIZE,PRICE,COLOR,QUANTITY) VALUES (?, ?, ?, ?, ?, ?)';
+    db.run(query, [name, brand, size, price, color, quantity], (err) => {
+        if (err) {
+            return res.status(500).send('Error adding shoe');
+        }
+        res.status(201).send('Shoe added successfully')
+    })
+})
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 4. PUT /shoes/:id - Update a shoe's details (admin-only)
+server.put('/shoes/:id', verifyToken, (req, res) => {
+    const ISADMIN = req.userDetails.isAdmin;
+    // Check if the user is an admin
+    if (ISADMIN !== 1) {
+        return res.status(403).send('Only admins can update shoes');
+    }
+
+    const name = req.body.name
+    const brand = req.body.brand
+    const size = req.body.size
+    const color = req.body.color
+    const price = req.body.price
+    const quantity = parseInt(req.body.quantity, 10)
+
+    const query = `UPDATE SHOES SET NAME = ?, BRAND = ?, SIZE= ?, PRICE = ?, QUANTITY = ? WHERE id = ?`
+    db.run(query, [name, brand, size, color, price, quantity], (err) => {
+        if (err) {
+            return res.status(500).send('Error updating shoe');
+        }
+        res.status(200).send(`Shoe updated successfully`)
+    })
+})
+
+// 5. DELETE /shoes/:id - Delete a shoe from inventory (admin-only)
+server.delete('/shoes/:id', verifyToken, (req, res) => {
+    const ISADMIN = req.userDetails.isAdmin;
+    // Check if the user is an admin
+    if (ISADMIN !== 1) {
+        return res.status(403).send(`Only admins can delete shoes`)
+    }
+    const query = `DELETE FROM SHOES WHERE id = ${req.params.id}`
+    db.run(query, (err) => {
+        if (err) {
+            console.log(err)
+            return res.send(err)
+        }
+        else if (!row) {
+            return res.status(404).send(`Error Deleting`)
+        }
+        else {
+            res.status(200).send(row)
+        }
+    })
+})
