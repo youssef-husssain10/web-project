@@ -197,3 +197,111 @@ server.delete('/shoes/:id', verifyToken, (req, res) => {
         }
     })
 })
+// 1. POST /orders - Place a new order
+server.post('/orders', (req, res) => {
+    const customer_id = req.body.customer_id
+    const shoe_id = req.body.shoe_id
+    const quantity = parseInt(req.body.quantity, 10)
+
+    const query = `INSERT INTO ORDERS (CUSTOMER_ID, SHOE_ID, QUANTITY) VALUES (?, ?, ?)`
+    db.run(query, [customer_id, shoe_id, quantity], (err) => {
+        if (err) {
+            return res.status(500).send('Error placing order')
+        }
+        res.status(201).send('Order placed successfully')
+    })
+})
+
+// 2. GET /orders - Get all orders (admin-only)
+server.get('/orders', verifyToken, (req, res) => {
+    const ISADMIN = req.userDetails.isAdmin;
+
+    if (ISADMIN !== 1) {
+        return res.status(403).send(`Only admins can delete shoes`)
+    }
+    db.all('SELECT * FROM ORDERS', (err, rows) => {
+        if (err) {
+            return res.status(500).send('Error retrieving orders');
+        }
+        res.status(200).send(rows);
+    })
+})
+
+// 3. GET /orders/:id - Get details of a specific order
+server.get(`/orders/:id`, verifyToken, (req, res) => {
+    const ISADMIN = req.userDetails.isAdmin;
+    // Check if the user is an admin
+    if (ISADMIN !== 1) {
+        return res.status(403).send('Forbidden');
+    }
+    db.get(`SELECT * FROM ORDERS WHERE id =  ${req.params.id}`, (err, row) => {
+        if (err) { //send the error
+            console.log(err)
+            return res.send(err)
+        }
+        else if (!row) {  //not found id
+            return res.status(404).send(`The Order with id: ${req.params.id} is not found`) //404 not found
+        }
+        res.status(200).send(row)
+    })
+})
+//######################################################################################################
+// 4. GET /orders/customer/:id - Get all orders for a specific customer
+server.get('/orders/customer/:id', verifyToken, (req, res) => {
+    const ISADMIN = req.userDetails.isAdmin;
+    // Check if the user is an admin
+    if (ISADMIN !== 1) {
+        return res.status(403).send('Forbidden');
+    }
+    db.all(`SELECT * FROM ORDERS WHERE customer_id = ${req.params.customer_id}`, (err, rows) => {
+        if (err) {
+            return res.status(500).send('Error retrieving orders')
+        }
+        res.status(200).send(rows)
+    })
+})
+//######################################################################################################
+// 5. PUT /orders/:id - Update order details (e.g., status)
+server.put('/orders/:id', verifyToken, (req, res) => {
+    const ISADMIN = req.userDetails.isAdmin;
+    // Check if the user is an admin
+    if (ISADMIN !== 1) {
+        return res.status(403).send('Forbidden');
+    }
+
+    db.get( `SELECT * FROM ORDERS WHERE id = ${req.params.id}`, (err, row) => {
+        if (err) { //send the error
+            console.log(err)
+            return res.send(err)
+        }
+        else if (!row) {  //not found id
+            return res.status(404).send(`The Order with id: ${req.params.id} is not found`) //404 not found
+        }
+        res.status(200).send(row)
+
+        // Update order status
+        const updateQuery = 'UPDATE ORDERS SET status = ? WHERE id = ?'
+        db.run(updateQuery, [status, id], function (err) {
+            if (err) {
+                return res.status(500).send('Error updating order')
+            }
+            res.status(200).send('Order updated successfully' )
+        })
+    })
+})
+//####################################################################################################
+// 6. DELETE /orders/:id - Cancel/delete an order (optional)
+server.delete('/orders/:id', verifyToken, (req, res) => {
+    const ISADMIN = req.userDetails.isAdmin;
+    // Check if the user is an admin
+    if (ISADMIN !== 1) {
+        return res.status(403).send(`Forbidden`)
+    }
+        // Delete the order from the database
+        db.run(`SELECT * FROM ORDERS WHERE id =${req.params.id}`, (err) => {
+            if (err) {
+                return res.status(500).send('Error deleting order');
+            }
+            res.status(200).send({ message: 'Order deleted successfully' })
+        })
+    })
