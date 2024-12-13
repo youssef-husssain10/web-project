@@ -305,3 +305,88 @@ server.delete('/orders/:id', verifyToken, (req, res) => {
             res.status(200).send({ message: 'Order deleted successfully' })
         })
     })
+// 1. GET /cart/:id - Get the cart for a specific customer
+server.get('/cart/:id', verifyToken, (req, res) => {
+    const { id } = req.params
+    const { userDetails } = req
+    const { isADMIN } = userDetails
+
+    if (userDetails.id !== parseInt(id) && !isADMIN) {
+        return res.status(403).send('Forbidden')
+    }
+
+    const query = 'SELECT * FROM CART WHERE customer_id = ?'
+    db.all(query, [id], (err, rows) => {
+        if (err) {
+            return res.status(500).send('Error retrieving cart')
+        }
+        res.status(200).json(rows)
+    })
+})
+
+// 2. POST /cart - Add an item to the cart
+server.post('/cart', verifyToken, (req, res) => {
+    const { userDetails } = req
+    const { shoe_id, quantity } = req.body
+
+    const query = 'INSERT INTO CART (customer_id, shoe_id, quantity) VALUES (?, ?, ?)'
+    db.run(query, [userDetails.id, shoe_id, quantity], function (err) {
+        if (err) {
+            return res.status(500).send('Error adding item to cart')
+        }
+        res.status(201).send('Item added to cart')
+    })
+})
+
+// 3. PUT /cart/:id - Update the quantity of an item in the cart
+server.put('/cart/:id', verifyToken, (req, res) => {
+    const { id } = req.params
+    const { quantity } = req.body
+    const { userDetails } = req
+
+    const query = 'SELECT * FROM CART WHERE id = ?'
+    db.get(query, [id], (err, row) => {
+        if (err || !row) {
+            return res.status(404).send('Cart item not found')
+        }
+
+        // Allow the customer who owns the cart or an admin to update the item
+        if (row.customer_id !== userDetails.id && !userDetails.isADMIN) {
+            return res.status(403).send('Forbidden')
+        }
+
+        const updateQuery = 'UPDATE CART SET quantity = ? WHERE id = ?'
+        db.run(updateQuery, [quantity, id], function (err) {
+            if (err) {
+                return res.status(500).send('Error updating cart item')
+            }
+            res.status(200).json({ message: 'Cart item updated successfully' })
+        })
+    })
+})
+
+// 4. DELETE /cart/:id - Remove an item from the cart
+server.delete('/cart/:id', verifyToken, (req, res) => {
+    const { id } = req.params
+    const { userDetails } = req
+
+    const query = 'SELECT * FROM CART WHERE id = ?'
+    db.get(query, [id], (err, row) => {
+        if (err || !row) {
+            return res.status(404).send('Cart item not found')
+        }
+
+        // Allow the customer who owns the cart or an admin to remove the item
+        if (row.customer_id !== userDetails.id && !userDetails.isADMIN) {
+            return res.status(403).send('Forbidden');
+        }
+
+        const deleteQuery = 'DELETE FROM CART WHERE id = ?'
+        db.run(deleteQuery, [id], function (err) {
+            if (err) {
+                return res.status(500).send('Error removing item from cart')
+            }
+            res.status(200).json({ message: 'Cart item removed successfully' })
+        })
+    })
+})
