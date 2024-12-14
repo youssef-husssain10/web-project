@@ -20,6 +20,7 @@ const createShoeTable = `CREATE TABLE IF NOT EXISTS SHOES (
   PRICE INT NOT NULL,
   QUANTITY INT NOT NULL
 )`;
+
 // Creating the Orders table
 const createOrderTable = `CREATE TABLE IF NOT EXISTS ORDERS (
   CUSTOMER_ID INT NOT NULL,
@@ -37,6 +38,7 @@ const createCartTable = `CREATE TABLE IF NOT EXISTS CART (
   FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(ID),
   FOREIGN KEY (SHOE_ID) REFERENCES SHOES(ID)
 )`;
+
 // Creating the Feedback table
 const createFeedbackTable = `CREATE TABLE IF NOT EXISTS FEEDBACK (
   CUSTOMER_ID INT NOT NULL,
@@ -93,3 +95,15 @@ db.serialize(() => {
     }
   });
 });
+
+// Exporting all constants for use in other parts of the application
+module.exports = { 
+  db
+  // createCustomerTable,
+  // createShoeTable,
+  // createOrderTable,
+  // createCartTable,
+  // createFeedbackTable
+};
+
+
