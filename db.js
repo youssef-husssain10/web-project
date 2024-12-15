@@ -1,4 +1,4 @@
-const sqlite3 = require('sqlite3');
+const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('shoesStore.db');
 
 // Creating the Customers table
@@ -7,7 +7,7 @@ const createCustomerTable = `CREATE TABLE IF NOT EXISTS CUSTOMER (
   NAME TEXT NOT NULL,
   EMAIL TEXT UNIQUE NOT NULL,
   PASSWORD TEXT NOT NULL,
-  ISADMIN INT
+  ISADMIN INTEGER DEFAULT 0
 )`;
 
 // Creating the Shoes table
@@ -35,15 +35,6 @@ const createCartTable = `CREATE TABLE IF NOT EXISTS CART (
   CUSTOMER_ID INT NOT NULL,
   SHOE_ID INT NOT NULL,
   QUANTITY INT NOT NULL,
-  FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(ID),
-  FOREIGN KEY (SHOE_ID) REFERENCES SHOES(ID)
-)`;
-
-// Creating the Feedback table
-const createFeedbackTable = `CREATE TABLE IF NOT EXISTS FEEDBACK (
-  CUSTOMER_ID INT NOT NULL,
-  SHOE_ID INT NOT NULL,
-  COMMENT TEXT,
   FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(ID),
   FOREIGN KEY (SHOE_ID) REFERENCES SHOES(ID)
 )`;
@@ -85,25 +76,9 @@ db.serialize(() => {
       console.log('CART table is ready.');
     }
   });
-
-  // Creating the FEEDBACK table
-  db.exec(createFeedbackTable, (err) => {
-    if (err) {
-      console.error('Error creating FEEDBACK table:', err.message);
-    } else {
-      console.log('FEEDBACK table is ready.');
-    }
-  });
 });
 
 // Exporting all constants for use in other parts of the application
 module.exports = { 
   db
-  // createCustomerTable,
-  // createShoeTable,
-  // createOrderTable,
-  // createCartTable,
-  // createFeedbackTable
 };
-
-
